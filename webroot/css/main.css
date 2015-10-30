@@ -1,0 +1,9 @@
+div.actions {
+    border-left: 5px solid #374850;
+    margin-bottom: 1rem;
+    margin-top: 0;
+    padding: 10px 10px;
+}
+
+div.actions .side-nav { margin-bottom: 0; padding-left: 0; }
+div.actions .side-nav li a { color: #FFFFFF; }
