@@ -15,6 +15,8 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
+use Cake\Event\Event;
+use Cake\Utility\Inflector;
 
 /**
  * Application Controller
@@ -38,5 +40,49 @@ class AppController extends Controller
     {
         parent::initialize();
         $this->loadComponent('Flash');
+        $this->loadComponent('Auth', [
+            'authenticate' => [
+                'Form' => [
+                    'fields' => ['username' => 'email']
+                ]
+            ],
+        ]);
     }
+
+    public function beforeRender(Event $event)
+    {
+        if( $logged = $this->Auth->user() ) {
+            $this->set( 'mainmenu', $this->__getMainMenu() );
+        }
+        $this->set( 'logged', $logged );
+    }
+
+    private function __getMainMenu() {
+        $files = scandir( '../src/Controller/' );
+        $ignore = [ '.', '..', 'Component', 'AppController.php', 'PagesController.php' ];
+        //$order = [ 'users' ];
+        $orderlyMainMenu = [];
+        $disorganisedMainMenu = [];
+        foreach( $files as $file ) {
+            if( !in_array($file, $ignore) ) {
+                $controller = explode('Controller.php', $file)[0];
+                $_controller = mb_strtolower( $controller );
+                $item = [
+                    'active' => $controller == $this->request->controller,
+                    'controller' => $_controller,
+                    'label' => Inflector::humanize( $controller ),
+                    'iconclass' => 'fa-' . Inflector::singularize( $_controller ),
+                ];
+                if( !empty($order) && in_array($_controller,$order) ) {
+                    $orderlyMainMenu[ array_search($_controller,$order) ] = $item;
+                }
+                else {
+                    $disorganisedMainMenu[] = $item;
+                }
+            }
+        }
+        ksort($orderlyMainMenu);
+        return array_merge( $orderlyMainMenu ,$disorganisedMainMenu );
+    }
+
 }
